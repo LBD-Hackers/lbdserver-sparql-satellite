@@ -12,7 +12,7 @@ async function updateSparql(query, dataset) {
         method: "POST",
         headers: {
             "Content-Type": "application/sparql-update",
-            "Authorization": "Basic " + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.FUSEKI_PW).toString("base64")
+            "Authorization": "Basic " + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.ADMIN_PW).toString("base64")
         },
         body: query,
     };
@@ -37,7 +37,7 @@ async function getAllGraphs(dataset) {
 
 async function getAllDatasets() {
     const url = `${process.env.SPARQL_STORE_ENDPOINT}/$/datasets`
-    const auth = 'Basic ' + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.FUSEKI_PW).toString('base64')
+    const auth = 'Basic ' + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.ADMIN_PW).toString('base64')
     var requestOptions = {
         method: 'GET',
         headers: {
@@ -157,7 +157,7 @@ async function querySparql(query, dataset) {
         method: "POST",
         headers: {
             "Accept": "application/sparql-results+json",
-            "Authorization":  "Basic " + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.FUSEKI_PW).toString("base64")
+            "Authorization":  "Basic " + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.ADMIN_PW).toString("base64")
         },
         body: urlencoded
     };
@@ -183,7 +183,7 @@ async function querySparql(query, dataset) {
 }
 
 async function createRepository(name) {
-    const auth = 'Basic ' + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.FUSEKI_PW).toString('base64')
+    const auth = 'Basic ' + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.ADMIN_PW).toString('base64')
     
     var requestOptions = {
       method: 'POST',
@@ -201,7 +201,7 @@ async function createRepository(name) {
 }
 
 async function checkRepositoryExistence(name) {
-    const auth = 'Basic ' + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.FUSEKI_PW).toString('base64')
+    const auth = 'Basic ' + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.ADMIN_PW).toString('base64')
     
     var requestOptions = {
       method: 'HEAD',
