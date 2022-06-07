@@ -1,0 +1,29 @@
+{
+  "name": "satellite-sparql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "env-cmd -f ./.env ts-node src/index.ts",
+    "start:docker": "ts-node src/sf.ts",
+    "dev:docker": "nodemon src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@comunica/query-sparql": "^2.2.1",
+    "body-parser": "^1.19.2",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.0",
+    "env-cmd": "^10.1.0",
+    "express": "^4.17.3",
+    "express-solid-auth-wrapper": "github:ConSolidProject/express-solid-auth-wrapper",
+    "form-data": "^4.0.0",
+    "pino": "^7.8.1",
+    "pino-pretty": "^7.5.3",
+    "sparqlalgebrajs": "^4.0.2",
+    "uuid": "^8.3.2"
+  }
+}
