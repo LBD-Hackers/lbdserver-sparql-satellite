@@ -69,9 +69,6 @@ app.put("/:dataset", queryDatabase)
 // dataset retrieval
 app.get("/:dataset/get", getDataset)
 
-
-// app.post('/filesync', syncFileSystem)
- 
 // the satellite is notified of a new resource on the Pod
 app.post("/:dataset/upload", syncResourceAdd)
 
