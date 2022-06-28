@@ -90,16 +90,18 @@ async function uploadResource(data, graph, dataset, extension) {
 
 // upload a list of resources, filter RDF resources, check if they already exist on the triple store and if not, upload to the SPARQL store
 async function uploadRdfToTripleStore(sync, options, dataset, fetch) {
-    try {
+    // try {
         for (const resource of sync) {
             let exists;
             if (!options.overwrite) {
                 exists = await checkExistenceInTripleStore(resource, dataset);
             }
             if (options.overwrite || !exists) {
+                console.log('fetch', fetch)
                 const data = await fetch(resource, {
                     headers: { Accept: "application/ld+json" },
-                });
+                }).catch(e => console.log(e));
+
                 // content types to sync
                 if (data.status === 200) {
                     await deleteResource(resource, dataset);
@@ -112,9 +114,9 @@ async function uploadRdfToTripleStore(sync, options, dataset, fetch) {
             }
         }
         return
-    } catch (error) {
-        log.error(`error`, error);
-    }
+//     } catch (error) {
+//         log.error(`error`, error);
+//     }
 }
 
 

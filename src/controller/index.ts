@@ -8,10 +8,9 @@ const { readdir } = require('fs').promises;
 
 // functionality for uploading new resource to the satellite
 async function syncResourceAdd(req, res) {
-    const {url} = req.body
+    let {url} = req.body 
     // 1. internal satellite logic to store graphs (e.g. one dataset per project, or multiple dataset per project, or the entire pod in one dataset etc.)
     const dataset = req.params.dataset
-
     // 2. get the resource and upload to triple store
     await uploadRdfToTripleStore([url], {overwrite: false}, dataset, req.fetch)
 

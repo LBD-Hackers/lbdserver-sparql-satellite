@@ -1,11 +1,14 @@
 import express from 'express'
 import { log } from './logger'
 import cors from 'cors'
-import { extractWebId } from "express-solid-auth-wrapper"
 import { syncResourceAdd, syncResourceDelete, syncResourceUpdate, queryDatabase, getDataset, getAllMirroredResources, createDataset } from "./controller"
 import generateFetch from './functions/auth'
-import fetch from 'cross-fetch'
+import {fetch} from 'cross-fetch'
 import bodyParser from 'body-parser'
+
+import { extractWebId, setSatellite } from "express-solid-auth-wrapper"
+
+
 const port = process.env.PORT_SPARQL_SATELLITE
 
 const app = express();
@@ -16,33 +19,14 @@ var options = {
     inflate: true,
     limit: '100kb',
     type: 'application/sparql-update'
-  };
+};
 
 app.use(bodyParser.raw(options));
 app.use(express.urlencoded({ limit: "5mb", extended: true }));
 
-async function setSatellite(req, res, next) {
-    try {
-        if (req.auth.webId) {
-            const { email, password, idp } = JSON.parse(process.env[req.auth.webId])
-            if (email && password) {
-                req.fetch = await generateFetch(email, password, idp)
-            } else {
-                req.fetch = fetch
-            }
-        } else {
-            req.fetch = fetch
-        }
-        next()
-    } catch (error) {
-        console.log(`error`, error)
-        next(error)
-    }
-}
-
 // // set satellite authenticated session as req.session
 app.use(extractWebId)
-app.use(setSatellite)
+app.use(setSatellite(JSON.parse(process.env.ACCOUNT)))
 
 app.use((req, res, next) => {
     res.append('Access-Control-Allow-Origin', ['*']);
