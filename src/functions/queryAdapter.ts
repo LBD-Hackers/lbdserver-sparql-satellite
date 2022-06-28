@@ -20,8 +20,12 @@ export async function queryPodUnion(req, res) {
         }
       }
     }
-
-    const query: string = validateQuery(q)
+    let query: string
+    if (q.toLowerCase().includes('select')) {
+      query = validateQuery(q)
+    } else {
+      query = q
+    }
     const set = new Set()
     const notAllowed = new Set()
 
@@ -34,45 +38,89 @@ export async function queryPodUnion(req, res) {
       }
     })
 
-    for (const resource of Array.from(set)) {
-      let aclQuery
-      if (actor) {
-        aclQuery = `PREFIX acl: <http://www.w3.org/ns/auth/acl#>
-            PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-            PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-            
-            ASK {?authorization
-                  a acl:Authorization ;
-                  acl:accessTo <${resource}> ;
-                  acl:mode acl:Read .
-          {?authorization acl:agent <${actor}> }
-          UNION {?authorization acl:agentClass foaf:Agent }
-            }`
-      } else {
-        aclQuery = `PREFIX acl: <http://www.w3.org/ns/auth/acl#>
-            PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-            PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-            
-            ASK {?authorization
-                  a acl:Authorization ;
-                  acl:accessTo <${resource}> ;
-                  acl:mode acl:Read ;
-                  acl:agentClass foaf:Agent .
-            }`
-      } 
-
-      const can = await querySparql(aclQuery, dataset, "application/sparql-results+json")
-      if (!can) {
-        notAllowed.add(resource)
-      }
+    let aclQuery
+    if (actor) {
+      aclQuery = `
+      PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+      PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+      
+      SELECT ?acl ?resource ?default WHERE {
+        GRAPH ?acl {
+          ?authorization a acl:Authorization ;
+          acl:accessTo ?resource ;
+          acl:mode acl:Read .
+          OPTIONAL {?authorization acl:default ?default }
+          {
+            ?authorization acl:agent <${actor}>
+          } UNION {
+            ?authorization acl:agentClass foaf:Agent
+          }
+        }
+      } order by strlen(str(?resource))`
+    } else {
+      aclQuery = `PREFIX ac: <http://umbel.org/umbel/ac/>
+      PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+      PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+      
+      SELECT ?acl ?resource ?default WHERE {
+        GRAPH ?acl {
+          ?authorization a acl:Authorization ;
+          acl:accessTo ?resource ;
+          acl:mode acl:Read .
+          OPTIONAL {?authorization acl:default ?default }
+            ?authorization acl:agentClass foaf:Agent
+        }
+      } order by strlen(str(?resource))`
     }
+
+    const allAcls = await querySparql(aclQuery, dataset, "application/sparql-results+json")
+
+    const allowed = new Set()
+    allAcls.results.bindings.forEach(item => allowed.add(item.resource.value))
+    // console.log('allowed', JSON.stringify(allowed, undefined, 4))
+
+    // for (const resource of Array.from(set)) {
+    //   let aclQuery
+    //   if (actor) {
+    //     aclQuery = `PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+    //         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    //         PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+            
+    //         ASK {?authorization
+    //               a acl:Authorization ;
+    //               acl:accessTo <${resource}> ;
+    //               acl:mode acl:Read .
+    //       {?authorization acl:agent <${actor}> }
+    //       UNION {?authorization acl:agentClass foaf:Agent }
+    //         }`
+    //   } else {
+    //     aclQuery = `PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+    //         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    //         PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+            
+    //         ASK {?authorization
+    //               a acl:Authorization ;
+    //               acl:accessTo <${resource}> ;
+    //               acl:mode acl:Read ;
+    //               acl:agentClass foaf:Agent .
+    //         }`
+    //   }
+
+    //   const can = await querySparql(aclQuery, dataset, "application/sparql-results+json")
+    //   if (!can) {
+    //     notAllowed.add(resource)
+    //   }
+    // }
 
     const final = results.results.bindings.map(binding => {
       const original = {}
       for (const key of Object.keys(binding)) {
         if (key.startsWith('graph_')) {
-          if (notAllowed.has(binding[key])) {
+          if (!allowed.has(binding[key].value)) {
             return undefined
+          } else {
           }
         } else {
           original[key] = binding[key]
