@@ -24,7 +24,6 @@ SELECT ?local ?label WHERE {
 }`
 
 function validateQuery(query) {
-  const webId = "http://localhost:3000/dc/profile/card#me"
   const translation = translate(query);
     const newQuery = {
       type: "project",
@@ -80,13 +79,43 @@ function findLowerLevel(obj, variables) {
   }    
 }
 
+
+const webId = "http://localhost:3000/dc/profile/card#me"
 const newQuery = validateQuery(query)
 console.log('newQuery', newQuery)
 let url = encodeURI(endpoint + newQuery).replaceAll('#', "%23")
 
 async function run() {
-  const res = await fetch(url, requestOptions).then(response => response.json().results.bindings)
+  const set = new Set()
+  const res = await fetch(url, requestOptions).then(response => response.json())
+  res.results.bindings.forEach(item => {
+    for (key of Object.keys(item)) {
+      if (key.startsWith("graph_")) {
+        set.add(item[key].value)
+      }
+    }
+  })
+
+  for (const acl of Array.from(set)) {
+    const aclQuery = `PREFIX acl: <http://www.w3.org/ns/auth/acl#>
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+    
+    ASK {?authorization
+          a acl:Authorization ;
+          acl:accessTo <${acl}> ;
+          acl:mode acl:Read .
+  {?authorization acl:agent <${webId}> }
+  UNION {?authorization acl:agentClass foaf:Agent }
+    }`
+    let aclUrl = encodeURI(endpoint + aclQuery).replaceAll('#', "%23")
+    const can = await fetch(aclUrl, requestOptions).then(response => response.json()).then(i => i.boolean)
+    if (!can) {
+      throw new Error('Forbidden')
+    }
+  }
   console.log('res', res)
+  return res
 }
 
 run()

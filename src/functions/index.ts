@@ -30,7 +30,8 @@ async function updateSparql(query, dataset) {
 async function getAllGraphs(dataset) {
     const graphsInStore = await querySparql(
         `SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o}}`,
-        dataset
+        dataset,
+        "application/sparql-results+json"
     );
     return graphsInStore.results.bindings.map((b) => b.g.value);
 }
@@ -144,13 +145,14 @@ async function uploadRdfToTripleStoreFromFileSystem(sync, options, dataset, fetc
 async function checkExistenceInTripleStore(named, dataset) {
     const result = await querySparql(
         `ASK WHERE { GRAPH <${named}> { ?s ?p ?o } }`,
-        dataset
+        dataset,
+        ""
     );
     return result.boolean;
 }
 
 // perform a SPARQL query on the SPARQL store
-async function querySparql(query, dataset) {
+async function querySparql(query, dataset, accept) {
 
     var urlencoded = new URLSearchParams();
     urlencoded.append("query", query);
@@ -158,12 +160,11 @@ async function querySparql(query, dataset) {
     var requestOptions = {
         method: "POST",
         headers: {
-            "Accept": "application/sparql-results+json",
+            "Accept": accept,
             "Authorization":  "Basic " + Buffer.from(process.env.FUSEKI_USERNAME + ":" + process.env.ADMIN_PW).toString("base64")
         },
         body: urlencoded
     };
-
 
     let url = process.env.SPARQL_STORE_ENDPOINT + "/" + dataset + "/sparql";
 
@@ -176,11 +177,11 @@ async function querySparql(query, dataset) {
             const results = await res.json();
             return results;
         } else {
-            return { results: { bindings: [] } }
+            return new Error('Something went wrong')
         }
     } catch (error) {
         log.error(`error`, error)
-        return { results: { bindings: [] } }
+        return new Error('Something went wrong')
     }
 }
 
