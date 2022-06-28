@@ -86,6 +86,7 @@ function validateQuery(query) {
       return {query, from}
     } else {
       const graphVariable = "source"
+      console.log('translation', JSON.stringify(translation, undefined, 4))
       const {bgp, variables} = findLowerLevel(translation, translation.variables)
       const graphVar = { termType: 'Variable', value: graphVariable }
       const theQ: any  = {type: "project", input: {type: "graph", input: bgp, name: graphVar }, variables: [...variables, graphVar]}

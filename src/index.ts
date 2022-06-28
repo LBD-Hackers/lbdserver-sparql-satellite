@@ -6,8 +6,7 @@ import generateFetch from './functions/auth'
 import {fetch} from 'cross-fetch'
 import bodyParser from 'body-parser'
 
-import { extractWebId, setSatellite } from "express-solid-auth-wrapper"
-
+const { extractWebId, setSatellite } = require("express-solid-auth-wrapper")
 
 const port = process.env.PORT_SPARQL_SATELLITE
 
@@ -24,7 +23,7 @@ var options = {
 app.use(bodyParser.raw(options));
 app.use(express.urlencoded({ limit: "5mb", extended: true }));
 
-// // set satellite authenticated session as req.session
+// set satellite authenticated session as req.session
 app.use(extractWebId)
 app.use(setSatellite(JSON.parse(process.env.ACCOUNT)))
 
