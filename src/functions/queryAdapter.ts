@@ -66,11 +66,27 @@ export async function queryPodUnion(req, res) {
         notAllowed.add(resource)
       }
     }
-    if (Array.from(notAllowed).length > 0) {
-      throw new Error("Not allowed to access some of these resources")
-    } else {
-      return results
-    }
+
+    const final = results.results.bindings.map(binding => {
+      const original = {}
+      for (const key of Object.keys(binding)) {
+        if (key.startsWith('graph_')) {
+          if (notAllowed.has(binding[key])) {
+            return undefined
+          }
+        } else {
+          original[key] = binding[key]
+        }
+      }
+      return original
+    })
+    // if (Array.from(notAllowed).length > 0) {
+    //   // what to do if a resource cannot be seen? Don't send any results or filter them out?
+
+    //   throw new Error("Not allowed to access some of these resources")
+    // } else {
+      return {head: {vars: results.head.vars.filter(item => !item.includes('graph_'))}, results: final}
+    // }
   } catch (error) {
     console.log(`error`, error)
     return new Error(error)
