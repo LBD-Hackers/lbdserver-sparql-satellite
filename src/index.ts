@@ -6,7 +6,7 @@ import generateFetch from './functions/auth'
 import {fetch} from 'cross-fetch'
 import bodyParser from 'body-parser'
 
-const { extractWebId, setSatellite } = require("express-solid-auth-wrapper")
+import { extractWebId, setSatellite } from "express-solid-auth-wrapper"
 
 const port = process.env.PORT_SPARQL_SATELLITE
 

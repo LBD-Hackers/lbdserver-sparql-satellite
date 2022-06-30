@@ -16,6 +16,7 @@
   "dependencies": {
     "@comunica/query-sparql": "^2.2.1",
     "@inrupt/solid-client-authn-core": "^1.12.1",
+    "@solid/access-token-verifier": "^2.0.3",
     "body-parser": "^1.19.2",
     "cors": "^2.8.5",
     "dayjs": "^1.11.0",
@@ -25,6 +26,7 @@
     "form-data": "^4.0.0",
     "pino": "^7.8.1",
     "pino-pretty": "^7.5.3",
+    "solid-node-client": "^2.1.10",
     "sparqlalgebrajs": "^4.0.2",
     "uuid": "^8.3.2"
   }

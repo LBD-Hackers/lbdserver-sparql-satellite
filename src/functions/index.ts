@@ -1,3 +1,5 @@
+import { translate } from "sparqlalgebrajs"
+
 const FormData = require('form-data')
 const {v4} = require('uuid')
 const {log} = require('../logger')
@@ -31,7 +33,8 @@ async function getAllGraphs(dataset) {
     const graphsInStore = await querySparql(
         `SELECT DISTINCT ?g WHERE {GRAPH ?g {?s ?p ?o}}`,
         dataset,
-        "application/sparql-results+json"
+        "application/sparql-results+json",
+        "project"
     );
     return graphsInStore.results.bindings.map((b) => b.g.value);
 }
@@ -146,16 +149,26 @@ async function checkExistenceInTripleStore(named, dataset) {
     const result = await querySparql(
         `ASK WHERE { GRAPH <${named}> { ?s ?p ?o } }`,
         dataset,
-        ""
+        "",
+        "project"
     );
     return result.boolean;
 }
 
 // perform a SPARQL query on the SPARQL store
-async function querySparql(query, dataset, accept) {
+async function querySparql(query, dataset, accept, type) {
 
     var urlencoded = new URLSearchParams();
     urlencoded.append("query", query);
+
+    if (accept === "*/*") {
+        const queryType = translate(query).type
+        switch(queryType) {
+            case "construct": accept = "application/ld+json"; break;
+            case "project": accept = "application/sparql-results+json"; break;
+            default: accept = accept
+        }
+    }
 
     var requestOptions = {
         method: "POST",
