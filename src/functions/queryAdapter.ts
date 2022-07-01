@@ -64,11 +64,28 @@ export async function queryPodUnion(req, res) {
       results = await querySparql(query ,dataset, req.headers.accept, type)
       const toCheck = await getContainer(results["@graph"])
       allowed = await checkAccessRights(toCheck, actor, dataset)
-      if (isSubsetOf(allowed, toCheck)) {
-        final = results
-      } else {
-        throw new Error(`You are not allowed to construct this query, as you do not have access rights to all the triples they reside in.`)
+      
+      let currentGraph = results["@graph"];
+      let context = results["@context"];
+      let newGraph = [];
+      for (let element of currentGraph) {
+        console.log("element", element);
+        console.log("isAllowed", Array.from(allowed).includes(element["@id"]));
+        if (Array.from(allowed).includes(element["@id"])) {
+          newGraph.push(element);
+        }
       }
+      let jsonResult = {};
+      jsonResult["@graph"] = newGraph;
+      jsonResult["@context"] = context;
+
+      final = jsonResult;
+      
+      //if (isSubsetOf(allowed, toCheck)) {
+        //final = results
+      //} else {
+        //throw new Error(`You are not allowed to construct this query, as you do not have access rights to all the triples they reside in.`)
+      //}
     }
 
 
