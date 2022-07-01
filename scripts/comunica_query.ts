@@ -28,9 +28,17 @@ const config = {
 async function run() {
     const myFetch = await getAuthFetch(config)
     const engine = new QueryEngine()
-    const query: any = `SELECT * WHERE {?s <http://www.w3.org/ns/dcat#unexistingProperty> ?o}`
-    const res = await engine.query(query, { sources: ["http://localhost:5202/dc/sparql"], fetch: myFetch })
-    const { data } = await engine.resultToString(res, 'application/sparql-results+json');
+//     const result = await engine.query(`
+//   SELECT ?s ?p ?o WHERE {
+//     ?s ?p <http://dbpedia.org/resource/Belqsdfqsdfqsdfgium>.
+//     ?s ?p ?o
+//   } LIMIT 100`, {
+//   sources: ['http://localhost:3030/dc/sparql'],
+// });
+
+    const query: any = `SELECT * WHERE {?s <http://www.w3.org/ns/dcat#dataset> ?o}`
+    const result = await engine.query(query, { sources: ["http://localhost:5202/dc/sparql"], fetch: myFetch })
+    const { data } = await engine.resultToString(result, 'application/sparql-results+json');
     const asJSON = await streamToString(data)
     console.log('asJSON', asJSON)
 }

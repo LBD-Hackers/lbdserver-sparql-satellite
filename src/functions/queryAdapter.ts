@@ -30,6 +30,7 @@ export async function queryPodUnion(req, res) {
     if (type === "project") {
       query = validateSelectQuery(q)
       results = await querySparql(query, dataset, req.headers.accept, type)
+      
       const set = new Set()
 
       results.results.bindings.forEach(item => {
@@ -53,7 +54,11 @@ export async function queryPodUnion(req, res) {
         }
         return original
       })
-      return {head: {vars: results.head.vars.filter(item => !item.includes('graph_'))}, results: final}
+
+
+
+      const response = {head: {vars: results.head.vars.filter(item => !item.includes('graph_'))}, results: {bindings: final}}
+      return response
     } else if (type === "construct") {
       query = validateConstructQuery(q)
       results = await querySparql(query ,dataset, req.headers.accept, type)
@@ -300,9 +305,10 @@ function findLowerLevel(obj, variables) {
       variables = undefined
     }
   }
+
   if (obj.type === "bgp") {
     return { bgp: obj, variables }
   } else {
     return findLowerLevel(obj.input, variables)
   }
-}
+} 
